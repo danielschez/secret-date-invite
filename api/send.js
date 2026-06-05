@@ -1,25 +1,13 @@
-import emailjs from '@emailjs/nodejs';
-
-export const config = { runtime: 'edge' };
-
-export default async function handler(req) {
-  // Solo POST
+export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const body = await req.json();
-    const { fecha, hora, actividad, despues } = body;
+    const { fecha, hora, actividad, despues } = req.body;
 
     if (!fecha || !hora || !actividad || !despues) {
-      return new Response(JSON.stringify({ error: 'Faltan datos' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return res.status(400).json({ error: 'Faltan datos' });
     }
 
     const cuerpo = `💌 CONFIRMACIÓN DE CITA 💌
@@ -37,37 +25,38 @@ export default async function handler(req) {
 Nos vemos pronto, mi enfermera favorita 🏥💕
 ~ Tu cita confirmada 💕 ~`;
 
-    await emailjs.send(
-      process.env.EMAILJS_SERVICE_ID,
-      process.env.EMAILJS_TEMPLATE_ID,
-      {
-        to_email:  process.env.DEST_EMAIL,
-        subject:   '💘 ¡Match confirmado! romance.exe iniciado correctamente',
-        message:   cuerpo,
-        body:      cuerpo,
-        fecha,
-        hora,
-        actividad,
-        despues,
-        from_name: 'romance.exe',
-        reply_to:  process.env.DEST_EMAIL,
-      },
-      {
-        publicKey:  process.env.EMAILJS_PUBLIC_KEY,
-        privateKey: process.env.EMAILJS_PRIVATE_KEY,
-      }
-    );
-
-    return new Response(JSON.stringify({ ok: true }), {
-      status: 200,
+    const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        service_id:  process.env.EMAILJS_SERVICE_ID,
+        template_id: process.env.EMAILJS_TEMPLATE_ID,
+        user_id:     process.env.EMAILJS_PUBLIC_KEY,
+        accessToken: process.env.EMAILJS_PRIVATE_KEY,
+        template_params: {
+          to_email:  process.env.DEST_EMAIL,
+          subject:   '💘 ¡Match confirmado! romance.exe iniciado correctamente',
+          message:   cuerpo,
+          body:      cuerpo,
+          fecha,
+          hora,
+          actividad,
+          despues,
+          from_name: 'romance.exe',
+          reply_to:  process.env.DEST_EMAIL,
+        },
+      }),
     });
+
+    if (response.ok) {
+      return res.status(200).json({ ok: true });
+    } else {
+      const text = await response.text();
+      throw new Error(text);
+    }
 
   } catch (err) {
-    console.error('EmailJS error:', err);
-    return new Response(JSON.stringify({ error: err.text || err.message || 'Error desconocido' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    console.error('Send error:', err);
+    return res.status(500).json({ error: err.message || 'Error desconocido' });
   }
 }
