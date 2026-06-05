@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>💌 ¿Saldrías conmigo?</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #fff0f5;
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 2rem 1rem 4rem;
+    }
+    .wrap { width: 100%; max-width: 560px; }
+    .step { display: none; }
+    .step.active { display: block; animation: fadeIn 0.4s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+
+    .card {
+      background: #fff;
+      border: 1px solid #f5c0d3;
+      border-radius: 20px;
+      padding: 2rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 4px 24px rgba(212,83,126,0.08);
+    }
+    .step-label { font-size: 11px; color: #c47fa0; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.4rem; font-weight: 600; }
+    .step-title { font-size: 22px; font-weight: 700; color: #2d1a24; margin-bottom: 0.4rem; }
+    .step-sub { font-size: 15px; color: #7a5068; margin-bottom: 1.5rem; line-height: 1.6; }
+
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: linear-gradient(135deg, #d4537e, #e8709a);
+      color: #fff; border: none; border-radius: 50px;
+      padding: 13px 30px; font-size: 15px; font-weight: 600;
+      cursor: pointer; transition: transform 0.15s, box-shadow 0.15s;
+      box-shadow: 0 4px 14px rgba(212,83,126,0.35);
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(212,83,126,0.45); }
+    .btn-primary:active { transform: scale(0.97); }
+    .btn-primary:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
+
+    .btn-no-style {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: transparent; color: #7a5068;
+      border: 1.5px solid #f5c0d3; border-radius: 50px;
+      padding: 13px 26px; font-size: 15px; cursor: pointer;
+    }
+
+    .progress-bar { display: flex; gap: 6px; margin-bottom: 2rem; }
+    .prog-dot { height: 5px; flex: 1; border-radius: 3px; background: #fce4ee; transition: background 0.3s; }
+    .prog-dot.done { background: #d4537e; }
+
+    .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.5rem; }
+    .option-card {
+      border: 1.5px solid #fce4ee; border-radius: 14px;
+      padding: 14px 16px; cursor: pointer;
+      transition: all 0.2s; background: #fff; text-align: left; width: 100%;
+    }
+    .option-card:hover { border-color: #d4537e; background: #fff5f8; }
+    .option-card.selected { border-color: #d4537e; background: #fff0f5; box-shadow: 0 0 0 3px rgba(212,83,126,0.12); }
+    .oc-emoji { font-size: 24px; margin-bottom: 6px; }
+    .oc-label { font-size: 14px; font-weight: 600; color: #2d1a24; }
+    .oc-sub { font-size: 12px; color: #a0708a; margin-top: 2px; }
+
+    .datetime-row { display: flex; gap: 12px; margin-bottom: 1.5rem; }
+    .datetime-row input {
+      flex: 1; padding: 11px 14px;
+      border: 1.5px solid #fce4ee; border-radius: 12px;
+      font-size: 14px; background: #fff; color: #2d1a24;
+      outline: none; transition: border-color 0.2s;
+    }
+    .datetime-row input:focus { border-color: #d4537e; }
+
+    .summary-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #fce4ee; font-size: 14px; }
+    .summary-row:last-child { border-bottom: none; }
+    .summary-label { color: #a0708a; }
+    .summary-val { color: #2d1a24; font-weight: 600; text-align: right; max-width: 60%; }
+
+    .tc-row { display: flex; align-items: flex-start; gap: 10px; margin: 1.25rem 0; }
+    .tc-row input[type=checkbox] { margin-top: 3px; accent-color: #d4537e; width: 17px; height: 17px; cursor: pointer; flex-shrink: 0; }
+    .tc-row label { font-size: 13px; color: #7a5068; line-height: 1.5; cursor: pointer; }
+
+    .nav-row { display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; }
+    .back-btn { font-size: 13px; color: #c47fa0; background: none; border: none; cursor: pointer; padding: 0; }
+    .back-btn:hover { color: #d4537e; }
+
+    .send-status { font-size: 13px; margin-top: 12px; min-height: 20px; color: #7a5068; }
+    .send-status.error { color: #e24b4a; }
+    .send-status.sending { color: #d4537e; }
+
+    .success-box { text-align: center; padding: 2.5rem 1.5rem; }
+    .success-emoji { font-size: 80px; margin-bottom: 1rem; display: block; }
+    .success-badge {
+      display: inline-block; background: #fff0f5; color: #993556;
+      border-radius: 999px; padding: 5px 18px; font-size: 12px;
+      font-weight: 700; margin-bottom: 1rem; border: 1px solid #f5c0d3;
+    }
+    .success-title { font-size: 28px; font-weight: 700; color: #2d1a24; margin-bottom: 0.5rem; }
+
+    .terminal {
+      background: #1e1e2e; color: #cdd6f4; border-radius: 14px;
+      padding: 1.1rem 1.25rem; font-family: 'Courier New', monospace;
+      font-size: 13px; text-align: left; margin: 1.25rem 0; line-height: 2;
+    }
+    .ok { color: #a6e3a1; } .info { color: #89dceb; } .warn { color: #f9e2af; }
+
+    #btn-si-wrap { display: inline-block; transition: transform 0.2s ease; transform-origin: left center; }
+    #btn-no-wrap { display: inline-block; transition: opacity 0.2s ease; }
+
+    @media (max-width: 480px) {
+      .options-grid { grid-template-columns: 1fr; }
+      .datetime-row { flex-direction: column; }
+      body { padding: 1rem 0.75rem 3rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="progress-bar">
+    <div class="prog-dot done" id="p1"></div>
+    <div class="prog-dot" id="p2"></div>
+    <div class="prog-dot" id="p3"></div>
+    <div class="prog-dot" id="p4"></div>
+    <div class="prog-dot" id="p5"></div>
+    <div class="prog-dot" id="p6"></div>
+  </div>
+
+  <!-- STEP 1 -->
+  <div class="step active" id="step1">
+    <div class="card">
+      <div class="step-label">Pregunta importante 💌</div>
+      <div class="step-title">¿Saldrías conmigo? 🥺</div>
+      <div class="step-sub">Selecciona tu respuesta con cuidado, solo hay una opción correcta 😏</div>
+      <div style="display:flex; gap:16px; align-items:center; flex-wrap:wrap; min-height:60px;">
+        <div id="btn-si-wrap">
+          <button class="btn-primary" id="btn-si" onclick="nextStep(2)">💖 Sí, claro que sí</button>
+        </div>
+        <div id="btn-no-wrap">
+          <button class="btn-no-style" id="btn-no">🙈 No</button>
+        </div>
+      </div>
+      <p style="font-size:12px; color:#c47fa0; margin-top:14px;">* El botón "No" puede tener sus propias ideas 👀</p>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="step" id="step2">
+    <div class="card">
+      <div class="step-label">Paso 2 de 5 📅</div>
+      <div class="step-title">¿Cuándo estás disponible? 🗓️</div>
+      <div class="step-sub">Elige la fecha y hora perfectas ✨</div>
+      <div class="datetime-row">
+        <input type="date" id="fecha-input" />
+        <input type="time" id="hora-input" />
+      </div>
+      <div class="nav-row">
+        <button class="back-btn" onclick="prevStep(1)">← volver</button>
+        <button class="btn-primary" onclick="confirmarFecha()">Confirmar 🎉</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="step" id="step3">
+    <div class="card">
+      <div class="step-label">Paso 3 de 5 🌟</div>
+      <div class="step-title">¿Qué hacemos en la cita? 💑</div>
+      <div class="step-sub">Elige tu actividad favorita</div>
+      <div class="options-grid" id="cita-grid">
+        <button class="option-card" onclick="selectOption('cita',this,'🎬 Película')"><div class="oc-emoji">🎬</div><div class="oc-label">Película</div><div class="oc-sub">Palomitas y tú 🍿</div></button>
+        <button class="option-card" onclick="selectOption('cita',this,'🍽️ Cena romántica')"><div class="oc-emoji">🍽️</div><div class="oc-label">Cena romántica</div><div class="oc-sub">Velas y buena comida</div></button>
+        <button class="option-card" onclick="selectOption('cita',this,'🌮 Comida casual')"><div class="oc-emoji">🌮</div><div class="oc-label">Comida casual</div><div class="oc-sub">Sin pretensiones, solo rico</div></button>
+        <button class="option-card" onclick="selectOption('cita',this,'🍦 Helado')"><div class="oc-emoji">🍦</div><div class="oc-label">Helado</div><div class="oc-sub">Dulce como tú 🥰</div></button>
+        <button class="option-card" onclick="selectOption('cita',this,'☕ Un café')"><div class="oc-emoji">☕</div><div class="oc-label">Un café</div><div class="oc-sub">Conversación infinita</div></button>
+        <button class="option-card" onclick="selectOption('cita',this,'🎡 Parque de diversiones')"><div class="oc-emoji">🎡</div><div class="oc-label">Parque de diversiones</div><div class="oc-sub">Gritos y risas 🎢</div></button>
+        <button class="option-card" onclick="selectOption('cita',this,'🎨 Museo o galería')"><div class="oc-emoji">🎨</div><div class="oc-label">Museo o galería</div><div class="oc-sub">Arte y cultura contigo</div></button>
+        <button class="option-card" onclick="selectOption('cita',this,'🎳 Boliche')"><div class="oc-emoji">🎳</div><div class="oc-label">Boliche</div><div class="oc-sub">Competencia amistosa 😜</div></button>
+        <button class="option-card" onclick="selectOption('cita',this,'🌿 Picnic en el parque')"><div class="oc-emoji">🌿</div><div class="oc-label">Picnic en el parque</div><div class="oc-sub">Naturaleza y merienda</div></button>
+        <button class="option-card" onclick="selectOption('cita',this,'🎤 Karaoke')"><div class="oc-emoji">🎤</div><div class="oc-label">Karaoke</div><div class="oc-sub">Aunque cantemos mal 🎶</div></button>
+      </div>
+      <div class="nav-row">
+        <button class="back-btn" onclick="prevStep(2)">← volver</button>
+        <button class="btn-primary" onclick="nextIfSelected('cita', 4)">Siguiente →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 4 -->
+  <div class="step" id="step4">
+    <div class="card">
+      <div class="step-label">Paso 4 de 5 🌙</div>
+      <div class="step-title">Y después de la cita… 🌌</div>
+      <div class="step-sub">¿Cómo cerramos la noche perfecta?</div>
+      <div class="options-grid" id="post-grid">
+        <button class="option-card" onclick="selectOption('post',this,'🌃 Paseo nocturno')"><div class="oc-emoji">🌃</div><div class="oc-label">Paseo nocturno</div><div class="oc-sub">La ciudad de noche</div></button>
+        <button class="option-card" onclick="selectOption('post',this,'🎵 Playlist compartida')"><div class="oc-emoji">🎵</div><div class="oc-label">Playlist compartida</div><div class="oc-sub">Nuestra música 💿</div></button>
+        <button class="option-card" onclick="selectOption('post',this,'🔭 Ver las estrellas')"><div class="oc-emoji">🔭</div><div class="oc-label">Ver las estrellas</div><div class="oc-sub">Desde un lugar secreto 🌠</div></button>
+        <button class="option-card" onclick="selectOption('post',this,'🌅 Esperar el amanecer')"><div class="oc-emoji">🌅</div><div class="oc-label">Esperar el amanecer</div><div class="oc-sub">Ver cómo nace el día</div></button>
+        <button class="option-card" onclick="selectOption('post',this,'🎲 Juegos de mesa')"><div class="oc-emoji">🎲</div><div class="oc-label">Juegos de mesa</div><div class="oc-sub">Quien pierde paga el café</div></button>
+        <button class="option-card" onclick="selectOption('post',this,'🍕 Pizza a medianoche')"><div class="oc-emoji">🍕</div><div class="oc-label">Pizza a medianoche</div><div class="oc-sub">Porque siempre hay hambre 🌙</div></button>
+      </div>
+      <div class="nav-row">
+        <button class="back-btn" onclick="prevStep(3)">← volver</button>
+        <button class="btn-primary" onclick="nextIfSelected('post', 5)">Ver resumen →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 5 -->
+  <div class="step" id="step5">
+    <div class="card">
+      <div class="step-label">Paso 5 de 5 📋</div>
+      <div class="step-title">Resumen de la cita 🌹</div>
+      <div class="step-sub">Confirma los detalles y acepta los términos para enviar 💌</div>
+      <div id="summary-block" style="margin-bottom:1.25rem;"></div>
+      <div class="tc-row">
+        <input type="checkbox" id="tc-check" />
+        <label for="tc-check">Acepto los <strong>Términos y Condiciones</strong> del amor 💕 — incluyendo cláusula de manos tomadas, miradas largas y al menos un abrazo garantizado.</label>
+      </div>
+      <div class="nav-row">
+        <button class="back-btn" onclick="prevStep(4)">← volver</button>
+        <button class="btn-primary" id="btn-enviar" onclick="enviarConfirmacion()">Enviar confirmación 💌</button>
+      </div>
+      <p class="send-status" id="send-status"></p>
+    </div>
+  </div>
+
+  <!-- STEP 6 -->
+  <div class="step" id="step6">
+    <div class="card success-box">
+      <span class="success-emoji">💘</span>
+      <div class="success-badge">STATUS: SUCCESS ✅</div>
+      <div class="success-title">¡Match confirmado! 🎉</div>
+      <p style="color:#7a5068; font-size:15px; margin: 0.5rem 0 1.25rem; line-height:1.6;">
+        Nos vemos pronto, <strong>mi enfermera favorita</strong> 🏥💕
+      </p>
+      <div class="terminal">
+        <div><span class="ok">✔</span> romance.exe iniciado correctamente</div>
+        <div><span class="info">→</span> cargando_sentimientos.dll… <span class="ok">OK</span></div>
+        <div><span class="info">→</span> validando_corazon.json… <span class="ok">OK</span></div>
+        <div><span class="warn">!</span> advertencia: mariposas en el estómago detectadas</div>
+        <div><span class="ok">✔</span> correo enviado exitosamente 📧</div>
+        <div><span class="ok">✔</span> cita agendada exitosamente 🗓️</div>
+        <div style="margin-top:6px; color:#cba6f7;">~ sistema listo para enamorar ~</div>
+      </div>
+      <p style="font-size:22px; margin-top:0.5rem;">🥰🌷✨🌙💫</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  let state = { fecha: '', hora: '', cita: '', post: '' };
+  let siScale = 1, noOpacity = 1;
+
+  (function init() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('fecha-input').setAttribute('min', today);
+
+    const btnNo  = document.getElementById('btn-no');
+    const siWrap = document.getElementById('btn-si-wrap');
+    const noWrap = document.getElementById('btn-no-wrap');
+
+    function doGrow() {
+      siScale   = Math.min(siScale + 0.15, 2.4);
+      noOpacity = Math.max(0, noOpacity - 0.18);
+      siWrap.style.transform = 'scale(' + siScale + ')';
+      noWrap.style.opacity   = noOpacity;
+      if (noOpacity <= 0) {
+        noWrap.style.pointerEvents = 'none';
+        noWrap.style.visibility    = 'hidden';
+      }
+    }
+
+    btnNo.addEventListener('mouseenter', doGrow);
+    btnNo.addEventListener('mousemove',  doGrow);
+    btnNo.addEventListener('touchstart', function(e){ e.preventDefault(); doGrow(); }, { passive: false });
+    btnNo.addEventListener('click',      function(e){ e.preventDefault(); doGrow(); });
+  })();
+
+  function nextStep(n) {
+    document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+    document.getElementById('step' + n).classList.add('active');
+    for (let i = 1; i <= 6; i++) {
+      const d = document.getElementById('p' + i);
+      if (d) d.classList.toggle('done', i <= n);
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  function prevStep(n) { nextStep(n); }
+
+  function confirmarFecha() {
+    const f = document.getElementById('fecha-input').value;
+    const h = document.getElementById('hora-input').value;
+    if (!f || !h) { alert('Por favor elige fecha y hora 📅'); return; }
+    state.fecha = f; state.hora = h;
+    nextStep(3);
+  }
+
+  function selectOption(group, el, label) {
+    const gridId = group === 'cita' ? 'cita-grid' : 'post-grid';
+    document.querySelectorAll('#' + gridId + ' .option-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    state[group] = label;
+  }
+
+  function nextIfSelected(group, next) {
+    if (!state[group]) { alert('Por favor elige una opción 🥺'); return; }
+    if (next === 5) buildSummary();
+    nextStep(next);
+  }
+
+  function buildSummary() {
+    const d = new Date(state.fecha + 'T12:00:00');
+    const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    const fechaStr = d.toLocaleDateString('es-MX', opts);
+    document.getElementById('summary-block').innerHTML = `
+      <div class="summary-row"><span class="summary-label">💖 Respuesta</span><span class="summary-val">Sí, claro que sí</span></div>
+      <div class="summary-row"><span class="summary-label">📅 Fecha</span><span class="summary-val">${fechaStr}</span></div>
+      <div class="summary-row"><span class="summary-label">⏰ Hora</span><span class="summary-val">${state.hora}</span></div>
+      <div class="summary-row"><span class="summary-label">🌟 Actividad</span><span class="summary-val">${state.cita}</span></div>
+      <div class="summary-row"><span class="summary-label">🌙 Después</span><span class="summary-val">${state.post}</span></div>
+    `;
+  }
+
+  async function enviarConfirmacion() {
+    if (!document.getElementById('tc-check').checked) {
+      alert('Necesitas aceptar los términos del amor 💕');
+      return;
+    }
+    const btn    = document.getElementById('btn-enviar');
+    const status = document.getElementById('send-status');
+    btn.disabled = true;
+    status.className   = 'send-status sending';
+    status.textContent = '💌 Enviando…';
+
+    const d = new Date(state.fecha + 'T12:00:00');
+    const fechaStr = d.toLocaleDateString('es-MX', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+    try {
+      const res = await fetch('/api/send', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fecha:     fechaStr,
+          hora:      state.hora,
+          actividad: state.cita,
+          despues:   state.post,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.ok) {
+        nextStep(6);
+      } else {
+        throw new Error(data.error || 'Error desconocido');
+      }
+    } catch (err) {
+      status.className   = 'send-status error';
+      status.textContent = '❌ Error: ' + err.message;
+      btn.disabled = false;
+    }
+  }
+</script>
+</body>
+</html>
