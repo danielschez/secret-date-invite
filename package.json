@@ -2,16 +2,8 @@
   "name": "secret-date-invite",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "dependencies": {
-    "@emailjs/nodejs": "^4.1.0"
-  },
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs"
+    "@emailjs/nodejs": "^4.0.3"
+  }
 }
