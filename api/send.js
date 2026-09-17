@@ -22,7 +22,7 @@ export default async function handler(req, res) {
 ✔ mariposas en el estómago: activadas
 ✔ cita agendada exitosamente
 
-Nos vemos pronto, mi enfermera favorita 🏥💕
+Nos vemos pronto, mi persona favorita 💕
 ~ Tu cita confirmada 💕 ~`;
 
     // Log para debug (sin exponer keys completas)
